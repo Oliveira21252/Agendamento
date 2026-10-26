@@ -1,30 +1,28 @@
 <!--
   EO Solução & Criação — Sistema de Gestão de Agendamentos PRO
-  Marca branca / Multirrubro / v8 PRO (pt-BR)
-  index.html — ARQUIVO ÚNICO: app interna + portal de agendamento público
+  Marca branca / Multirrubro / v8.2 (pt-BR)
+  index.html — ARQUIVO ÚNICO E INDEPENDENTE: app interna + portal de agendamento público
 
-Arquitetura v8.0 (100% local — sem servidor, sem /api/gas):
-  - Tudo roda no próprio navegador: os dados ficam no localStorage (chave EO_LOCAL_DB)
-  - Modo admin: login CRM (novo layout) → Dashboard, Agenda, Clientes, Alertas, Profissionais,
+  Arquitetura v8.2 (backend remoto — Google Apps Script do cliente):
+  - Todas as leituras e gravações vão para a URL informada pelo cliente (GAS_URL),
+    via POST {action, args} — os mesmos campos e ações de sempre
+  - Sem dados de exemplo: a base real vem do backend (vazia no início, é o esperado)
+  - Nenhum usuário é criado localmente: o acesso é validado pelo backend (apiLogin)
+  - Modo admin: login (novo layout) → Dashboard, Agenda, Clientes, Alertas, Profissionais,
     Solicitações, Configurações e Relatórios
   - Modo público: index.html?booking=1 → portal de agendamento (srcdoc a partir de #bookingTpl)
-  - Acesso inicial: admin@eo.com.br · senha eo123456 (dados de exemplo já cadastrados)
-  - Migração automática: se existir dados antigos (GTURNOS_BOOTSTRAP), são aproveitados
 
-  NOVO em v8.0:
-  - Removido o acesso ao backend /api/gas (Google Apps Script) — agora é um backend local
-  - Novo login estilo CRM: painel escuro com marca/funcionalidades + formulário branco
-  - Botão "Entrar no CRM", dica de primeiro acesso e mensagens de erro inline
-  - Envio de e-mail adaptado para mailto: e Telegram removido (dependiam de servidor)
-  v7.2: pt-BR completo, tema verde · preto · branco, design elegante, responsividade total
-  v7.1: portal como template legível (#bookingTpl), correções de bugs
+  v8.2: backend real (GAS_URL do cliente) no lugar do local — sem dados fake, sem criação
+        de usuário, campos e conexão exatamente como no link anexado
+  v8.1: identidade 100% EO Solução & Criação — nada de CRM
+  v8.0: login moderno; v7.2: pt-BR completo + tema verde · preto · branco; v7.1: bugs
 -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <base target="_top">
   <meta charset="UTF-8">
-  <title>EO Solução & Criação — Gestão de Agendamentos PRO v8.0</title>
+  <title>EO Solução & Criação — Gestão de Agendamentos PRO v8.2</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#0a0f0d">
   <meta name="mobile-web-app-capable" content="yes">
@@ -287,7 +285,7 @@ h1,h2,h3,h4{font-family:'Sora','Inter',system-ui,sans-serif;letter-spacing:-.3px
 .client-ac-item b{color:var(--navy);}
 .client-ac-item span{color:var(--muted);font-size:11px;}
 
-/* ── LOGIN CRM (painel escuro + formulário branco) ── */
+/* ── LOGIN (painel escuro + formulário branco) ── */
 .login-screen{
   min-height:100dvh;display:grid;place-items:center;padding:24px;
   background:
@@ -357,30 +355,25 @@ h1,h2,h3,h4{font-family:'Sora','Inter',system-ui,sans-serif;letter-spacing:-.3px
 }
 .lr-input input::placeholder{color:#a7b3ac;}
 .lr-input input:focus{border-color:#10b981;background:#fff;box-shadow:0 0 0 4px rgba(16,185,129,.13);}
-.btn-crm{
+.btn-login{
   width:100%;border:0;border-radius:13px;padding:14px 18px;margin-top:8px;
   background:linear-gradient(135deg,#34d399,#10b981);color:#fff;
   font-family:'Inter',sans-serif;font-weight:800;font-size:14.5px;letter-spacing:.1px;
   cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;
   box-shadow:0 14px 30px rgba(16,185,129,.35);transition:transform .18s,box-shadow .18s,opacity .18s;
 }
-.btn-crm:hover{transform:translateY(-1px);box-shadow:0 18px 38px rgba(16,185,129,.46);}
-.btn-crm:active{transform:translateY(0);}
-.btn-crm:disabled{opacity:.68;cursor:wait;transform:none;}
-.btn-crm .arr{transition:transform .18s;font-weight:700;}
-.btn-crm:hover:not(:disabled) .arr{transform:translateX(3px);}
-.btn-crm:focus-visible{outline:3px solid rgba(16,185,129,.45);outline-offset:2px;}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 18px 38px rgba(16,185,129,.46);}
+.btn-login:active{transform:translateY(0);}
+.btn-login:disabled{opacity:.68;cursor:wait;transform:none;}
+.btn-login .arr{transition:transform .18s;font-weight:700;}
+.btn-login:hover:not(:disabled) .arr{transform:translateX(3px);}
+.btn-login:focus-visible{outline:3px solid rgba(16,185,129,.45);outline-offset:2px;}
 .lr-error{
   display:none;align-items:flex-start;gap:8px;margin:0 0 16px;
   background:#fff1f2;border:1px solid #fecdd3;color:#be123c;
   font-size:12.5px;font-weight:600;line-height:1.45;padding:10px 13px;border-radius:12px;
 }
 .lr-error.show{display:flex;}
-.lr-hint{
-  margin-top:14px;background:#f0fdf6;border:1px dashed #6ee7b7;color:#065f46;
-  border-radius:12px;padding:11px 14px;font-size:12px;line-height:1.6;
-}
-.lr-hint b{font-weight:800;}
 .lr-note{display:flex;gap:9px;align-items:flex-start;margin-top:16px;color:#64746b;font-size:12px;line-height:1.55;}
 .lr-note .sh{flex-shrink:0;}
 .lr-copy{margin-top:22px;font-size:11px;color:#9aa8a0;text-align:center;}
@@ -533,7 +526,7 @@ h1,h2,h3,h4{font-family:'Sora','Inter',system-ui,sans-serif;letter-spacing:-.3px
 <body>
 <iframe id="bookingHost" title="Portal de agendamento"></iframe>
 
-<!-- ═══ LOGIN CRM ════════════════════════════════════ -->
+<!-- ═══ LOGIN ════════════════════════════════════════ -->
 <div id="loginScreen" class="login-screen">
   <div class="login-wrap">
 
@@ -543,14 +536,14 @@ h1,h2,h3,h4{font-family:'Sora','Inter',system-ui,sans-serif;letter-spacing:-.3px
         <div class="brand-logo" id="loginLogo">EO</div>
         <div class="ll-name" id="loginBrandName">EO Solução &amp; Criação</div>
       </div>
-      <div class="ll-badge">VENDAS SOB CONTROLE</div>
-      <h1 class="ll-title">Seu negócio, <em>inteiro em um só lugar.</em></h1>
-      <p class="ll-desc">Organize clientes, agendamentos e acompanhamentos sem pagar por ferramentas complicadas.</p>
+      <div class="ll-badge">AGENDAMENTOS SOB CONTROLE</div>
+      <h1 class="ll-title">Sua agenda, <em>inteira em um só lugar.</em></h1>
+      <p class="ll-desc">Organize clientes, agendamentos e serviços sem pagar por ferramentas complicadas.</p>
       <div class="ll-feats">
-        <div class="ll-feat"><span class="ll-feat-ic">🗂️</span><span class="ll-feat-t">Funil visual</span></div>
+        <div class="ll-feat"><span class="ll-feat-ic">📅</span><span class="ll-feat-t">Agenda organizada</span></div>
         <div class="ll-feat"><span class="ll-feat-ic">🔔</span><span class="ll-feat-t">Alertas automáticos</span></div>
         <div class="ll-feat"><span class="ll-feat-ic">🛡️</span><span class="ll-feat-t">Acesso privado</span></div>
-        <div class="ll-feat"><span class="ll-feat-ic">📈</span><span class="ll-feat-t">Métricas simples</span></div>
+        <div class="ll-feat"><span class="ll-feat-ic">📈</span><span class="ll-feat-t">Relatórios claros</span></div>
       </div>
     </div>
 
@@ -582,16 +575,11 @@ h1,h2,h3,h4{font-family:'Sora','Inter',system-ui,sans-serif;letter-spacing:-.3px
           <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" required>
         </div>
 
-        <button class="btn-crm" id="loginBtn" type="submit">Entrar no CRM <span class="arr">→</span></button>
+        <button class="btn-login" id="loginBtn" type="submit">Entrar no Sistema <span class="arr">→</span></button>
       </form>
 
-      <div class="lr-hint hidden" id="loginHint">
-        🔐 <b>Primeiro acesso:</b> <b>admin@eo.com.br</b> · senha <b>eo123456</b><br>
-        Já vem com profissionais, serviços e agenda de exemplo para você explorar.
-      </div>
-
-      <div class="lr-note"><span class="sh">🛡️</span><span>Seus dados ficam armazenados com segurança <b>neste dispositivo</b> — sem servidor externo e sem mensalidade.</span></div>
-      <div class="lr-copy">EO Solução &amp; Criação — Sistema de Gestão de Agendamentos PRO v8.0</div>
+      <div class="lr-note"><span class="sh">🔒</span><span>Conectado ao <b>seu backend Google Apps Script</b> — usuários, agenda e clientes são salvos nele.</span></div>
+      <div class="lr-copy">EO Solução &amp; Criação — Sistema de Gestão de Agendamentos PRO v8.2</div>
     </div>
 
   </div>
@@ -1001,104 +989,10 @@ const MES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto
 
 const B={pub:null,cli:null,suc:null,prof:null,svc:null,slots:[],sEleg:[],sid:null,_dni:''};
 
-/* ═══ Backend local — lê/escreve os MESMOS dados do app admin (localStorage) ═══ */
-const BL_DB='EO_LOCAL_DB';
-function blDb(){ try{const r=localStorage.getItem(BL_DB); if(r){const d=JSON.parse(r); if(d&&d._v) return d;}}catch(e){} return {}; }
-function blSave(db){ try{localStorage.setItem(BL_DB,JSON.stringify(db));}catch(e){} }
-function blAj(db,k){ const r=(db.ajustes||[]).find(a=>a.clave===k); return r?r.valor:''; }
-function blId(p){ return (p||'ID')+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7); }
-function blHoy(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-function blHHmm(min){ return String(Math.floor(min/60)).padStart(2,'0')+':'+String(min%60).padStart(2,'0'); }
-function blMin(hhmm){ const p=String(hhmm||'0:0').split(':'); return (Number(p[0])||0)*60+(Number(p[1])||0); }
+/* ═══ Backend remoto — a MESMA URL do app admin (Google Apps Script do cliente) ═══ */
+const GAS_URL='https://script.google.com/macros/s/AKfycbzfLggtDhmHMXGpe7XqcXypS-P6ft8XlPSC27x0zctx803Qm-QRQqRrg3qPL0TCObvNSg/exec';
 
-const BookingLocalAPI={
-  apiGetPublicData(){
-    const db=blDb();
-    return {ok:true,data:{
-      empresa:blAj(db,'Nombre_Empresa')||'EO Solução & Criação',
-      sistema:blAj(db,'Nombre_Sistema')||'Agendamento online',
-      iniciales:blAj(db,'Iniciales_Marca')||'EO',
-      logo:blAj(db,'Logo_URL')||'',
-      moneda:blAj(db,'Moneda')||'R$',
-      sucursales:db.sucursales||[],
-      profesionales:(db.usuarios||[]).filter(u=>u.rol==='Staff'&&u.estado==='Activo'),
-      servicios:(db.servicios||[]).filter(s=>s.estado!=='Inactivo')
-    }};
-  },
-  apiBookingLookupDni(dni){
-    const db=blDb();
-    const c=(db.clientes||[]).find(x=>String(x.dni_cuit||'')===String(dni||''));
-    if(!c) return {ok:true,data:{exists:false}};
-    return {ok:true,data:{exists:true,id:c.id,nombre:c.nombre,telefono:c.telefono,email:c.email}};
-  },
-  apiBookingUpsertCliente(obj){
-    const db=blDb();
-    let c=(db.clientes||[]).find(x=>String(x.dni_cuit||'')===String(obj.dni_cuit||''));
-    if(c){ c.nombre=obj.nombre||c.nombre; c.telefono=obj.telefono||c.telefono; c.email=obj.email||c.email; }
-    else{
-      c={id:blId('C'),dni_cuit:obj.dni_cuit||'',nombre:obj.nombre||'',telefono:obj.telefono||'',email:obj.email||'',notas_historial:''};
-      (db.clientes=db.clientes||[]).push(c);
-    }
-    blSave(db);
-    return {ok:true,data:{id:c.id,nombre:c.nombre,telefono:c.telefono,email:c.email}};
-  },
-  apiGetSlotsDisponibles(profId,dur){
-    const db=blDb();
-    const dur2=Math.max(5,Number(dur||30));
-    const disp=(db.disponibilidad||[]).filter(d=>String(d.usuario_id)===String(profId));
-    const ocup=(db.turnos||[]).filter(t=>String(t.profesional_id)===String(profId)&&t.estado!=='Cancelado');
-    const out=[]; const now=new Date(); const agora=now.getHours()*60+now.getMinutes();
-    for(let i=0;i<14;i++){
-      const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i);
-      const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-      disp.filter(w=>String(w.dia_semana)===String(d.getDay())).forEach(w=>{
-        const ini0=blMin(w.hora_desde),fim0=blMin(w.hora_hasta),step=Math.min(30,dur2);
-        for(let m=ini0;m+dur2<=fim0;m+=step){
-          if(i===0&&m<=agora) continue;
-          const hi=blHHmm(m),hf=blHHmm(m+dur2);
-          const confl=ocup.some(t=>t.fecha===iso&&blMin(t.hora_inicio)<blMin(hf)&&blMin(hi)<blMin(t.hora_fin));
-          if(!confl) out.push({fecha:iso,hora_inicio:hi,hora_fin:hf});
-        }
-      });
-    }
-    out.sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.hora_inicio.localeCompare(b.hora_inicio));
-    return {ok:true,data:out};
-  },
-  apiBookingConfirm(p){
-    const db=blDb();
-    const turnos=db.turnos=db.turnos||[];
-    for(const t of (p.turnos||[])){
-      const confl=turnos.some(x=>String(x.profesional_id)===String(t.profesional_id)&&x.fecha===t.fecha&&x.estado!=='Cancelado'&&blMin(x.hora_inicio)<blMin(t.hora_fin)&&blMin(t.hora_inicio)<blMin(x.hora_fin));
-      if(confl) return {ok:false,message:'O horário '+t.hora_inicio+' de '+t.fecha+' acabou de ser reservado. Escolha outro, por favor.'};
-    }
-    const agoraD=new Date();
-    const creados=[]; let total=0;
-    (p.turnos||[]).forEach(t=>{
-      const svc=(db.servicios||[]).find(s=>s.id===t.servicio_id)||{};
-      total+=Number(svc.precio||0);
-      turnos.push({
-        id:blId('T'),cliente_id:p.cliente_id,profesional_id:t.profesional_id,sucursal_id:t.sucursal_id,
-        fecha:t.fecha,hora_inicio:t.hora_inicio,hora_fin:t.hora_fin,servicio_id:t.servicio_id,
-        estado:'Pendiente',pago_estado:'Sin pago',nota:p.nota||'',criado_via:'portal',criado_em:agoraD.toISOString()
-      });
-      creados.push({fecha:t.fecha,hora_inicio:t.hora_inicio,svc_nombre:svc.nombre||''});
-    });
-    const sid=blId('SOL');
-    (db.solicitudes=db.solicitudes||[]).push({
-      id:sid,estado:'Nueva',
-      nombre_cliente:p.cliente_nombre||'',telefono_cliente:p.cliente_telefono||'',email_cliente:p.cliente_email||'',
-      servicios_nombres:creados.map(c=>c.svc_nombre).join('|'),
-      total:total,
-      fecha_solicitud:blHoy()+' '+String(agoraD.getHours()).padStart(2,'0')+':'+String(agoraD.getMinutes()).padStart(2,'0'),
-      nota_cliente:p.nota||'',nota_interna:'',updated_at:agoraD.toISOString()
-    });
-    blSave(db);
-    const wa=blAj(db,'WA_Negocio')?('https://wa.me/'+String(blAj(db,'WA_Negocio')).replace(/\D/g,'')):'';
-    return {ok:true,data:{creados,solicitud_id:sid,waLink:wa}};
-  }
-};
-
-// Compatibilidade: as chamadas google.script.run.* agora são resolvidas no próprio navegador.
+// As chamadas google.script.run.* são enviadas ao backend Google Apps Script do cliente.
 if (!window.google?.script?.run) {
   window.google = window.google || {};
   window.google.script = window.google.script || {};
@@ -1110,12 +1004,13 @@ if (!window.google?.script?.run) {
         get(_target, prop) {
           if (prop==='withSuccessHandler') return fn=>(state.ok=fn, runner);
           if (prop==='withFailureHandler') return fn=>(state.fail=fn, runner);
-          return (...args)=>Promise.resolve()
-            .then(()=>{
-              const f=BookingLocalAPI[String(prop)];
-              if(!f) return {ok:false,message:'Ação indisponível: '+prop};
-              return f(...args);
-            })
+          return (...args)=>fetch(GAS_URL,{
+            method:'POST',
+            headers:{'Content-Type':'text/plain;charset=utf-8'},
+            body:JSON.stringify({action:String(prop),args}),
+            redirect:'follow'
+          })
+            .then(r=>r.ok?r.json():Promise.reject(new Error('Erro HTTP '+r.status)))
             .then(r=>state.ok(r))
             .catch(err=>state.fail(err));
         }
@@ -1134,13 +1029,14 @@ addEventListener('DOMContentLoaded',()=>{
     .apiGetPublicData();
 });
 
+const PT_TITULOS={'Sistema de Gestión de Turnos':'Sistema de Gestão de Agendamentos','Gestión de Turnos PRO':'Gestão de Agendamentos PRO','Gestion de Turnos PRO':'Gestão de Agendamentos PRO'};
 function brand(){
   const d=B.pub;
   document.title='Agendar em '+d.empresa;
   const l=el('hLogo');
   if(d.logo)l.innerHTML=`<img src="${e(d.logo)}">`;else l.textContent=d.iniciales||'EO';
   el('hTitle').textContent=d.empresa;
-  el('hSub').textContent=d.sistema||'Agendamento online';
+  el('hSub').textContent=PT_TITULOS[d.sistema]||d.sistema||'Agendamento online';
 }
 
 /* ─── P1: DNI ─────────────────────────── */
@@ -1427,348 +1323,27 @@ function tk(msg,tp=''){
 </script>
 <script>
 /* ════════════════════════════════════════════════════
-   BACKEND LOCAL (sem servidor) — substitui o antigo /api/gas
-   Todos os dados ficam no localStorage (chave EO_LOCAL_DB) e as
-   ações mantêm o mesmo contrato {ok, data, message} do backend antigo.
+   BACKEND — GOOGLE APPS SCRIPT (URL informada pelo cliente)
+   Toda leitura e gravação são feitas no backend remoto do cliente,
+   via POST {action, args} — exatamente os mesmos campos e ações de sempre.
+   Não há dados de exemplo e nenhum usuário é criado aqui:
+   usuários, serviços, clientes e agenda vêm do próprio backend.
 ════════════════════════════════════════════════════ */
-const LOCAL_DB_KEY='EO_LOCAL_DB';
+const GAS_URL='https://script.google.com/macros/s/AKfycbzfLggtDhmHMXGpe7XqcXypS-P6ft8XlPSC27x0zctx803Qm-QRQqRrg3qPL0TCObvNSg/exec';
 
-function locISO(d=new Date()){
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function gasCall(action, args){
+  const ctl=new AbortController();
+  const to=setTimeout(()=>ctl.abort(),45000);
+  return fetch(GAS_URL,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({action:String(action),args:args||[]}),
+    redirect:'follow',
+    signal:ctl.signal
+  })
+    .finally(()=>clearTimeout(to))
+    .then(r=>r.ok?r.json():Promise.reject(new Error('Erro HTTP '+r.status)));
 }
-function locUid(p){ return (p||'ID')+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7); }
-function locOk(data){ return {ok:true,data}; }
-function locErr(message){ return {ok:false,message}; }
-function ajGet(db,k){ const r=(db.ajustes||[]).find(a=>a.clave===k); return r?r.valor:''; }
-
-function locSeed(){
-  const hoje=locISO();
-  const am=new Date(); am.setDate(am.getDate()+1); const amanha=locISO(am);
-  return {
-    _v:8,
-    usuarios:[
-      {id:'U-ADMIN',nombre:'Administrador EO',email:'admin@eo.com.br',senha:'eo123456',rol:'Admin',estado:'Activo',sucursal_id:'SUC-1',especialidad:'Gestão'},
-      {id:'U-STAFF1',nombre:'Ana Souza',email:'ana@eo.com.br',senha:'eo123456',rol:'Staff',estado:'Activo',sucursal_id:'SUC-1',especialidad:'Atendimento'}
-    ],
-    sucursales:[
-      {id:'SUC-1',nombre:'Unidade Central',direccion:'Av. Paulista, 1000 — São Paulo/SP',telefono:'',mapa_url:''}
-    ],
-    servicios:[
-      {id:'SV-1',nombre:'Consulta inicial',duracion_min:30,precio:120,color_hex:'#10b981',estado:'Activo'},
-      {id:'SV-2',nombre:'Retorno',duracion_min:30,precio:80,color_hex:'#0ea5e9',estado:'Activo'},
-      {id:'SV-3',nombre:'Avaliação completa',duracion_min:60,precio:180,color_hex:'#f59e0b',estado:'Activo'}
-    ],
-    clientes:[
-      {id:'C-1',nombre:'João Silva',dni_cuit:'12345678901',telefono:'5511991110001',email:'joao@email.com',notas_historial:''},
-      {id:'C-2',nombre:'Maria Oliveira',dni_cuit:'10987654321',telefono:'5511992220002',email:'maria@email.com',notas_historial:''}
-    ],
-    disponibilidad:[
-      {id:'DP-1',usuario_id:'U-STAFF1',dia_semana:1,hora_desde:'09:00',hora_hasta:'18:00'},
-      {id:'DP-2',usuario_id:'U-STAFF1',dia_semana:2,hora_desde:'09:00',hora_hasta:'18:00'},
-      {id:'DP-3',usuario_id:'U-STAFF1',dia_semana:3,hora_desde:'09:00',hora_hasta:'18:00'},
-      {id:'DP-4',usuario_id:'U-STAFF1',dia_semana:4,hora_desde:'09:00',hora_hasta:'18:00'},
-      {id:'DP-5',usuario_id:'U-STAFF1',dia_semana:5,hora_desde:'09:00',hora_hasta:'18:00'}
-    ],
-    turnos:[
-      {id:'T-EX1',cliente_id:'C-1',profesional_id:'U-STAFF1',sucursal_id:'SUC-1',servicio_id:'SV-1',fecha:hoje,hora_inicio:'09:00',hora_fin:'09:30',estado:'Confirmado',pago_estado:'Sin pago',nota:'',alerta_dia_enviada:'',alerta_d1_enviada:''},
-      {id:'T-EX2',cliente_id:'C-2',profesional_id:'U-STAFF1',sucursal_id:'SUC-1',servicio_id:'SV-3',fecha:hoje,hora_inicio:'11:00',hora_fin:'12:00',estado:'Pendiente',pago_estado:'Sin pago',nota:'',alerta_dia_enviada:'',alerta_d1_enviada:''},
-      {id:'T-EX3',cliente_id:'C-1',profesional_id:'U-STAFF1',sucursal_id:'SUC-1',servicio_id:'SV-2',fecha:amanha,hora_inicio:'15:00',hora_fin:'15:30',estado:'Pendiente',pago_estado:'Sin pago',nota:'',alerta_dia_enviada:'',alerta_d1_enviada:''}
-    ],
-    solicitudes:[
-      {id:'SOL-EX1',estado:'Nueva',nombre_cliente:'Carlos Pereira',telefono_cliente:'5511993330003',email_cliente:'carlos@email.com',servicios_nombres:'Avaliação completa',total:180,fecha_solicitud:hoje+' 08:30',nota_cliente:'Prefiro período da tarde.',nota_interna:'',updated_at:''}
-    ],
-    ajustes:[
-      {clave:'Nombre_Empresa',valor:'EO Solução & Criação'},
-      {clave:'Nombre_Sistema',valor:'Gestão de Agendamentos PRO'},
-      {clave:'Texto_Login_Titulo',valor:''},
-      {clave:'Texto_Login_Subtitulo',valor:''},
-      {clave:'Texto_Login_Boton',valor:''},
-      {clave:'Iniciales_Marca',valor:'EO'},
-      {clave:'Logo_URL',valor:''},
-      {clave:'Fondo_Login_URL',valor:''},
-      {clave:'Moneda',valor:'R$'},
-      {clave:'WA_Negocio',valor:''},
-      {clave:'Email_Admin',valor:''},
-      {clave:'Plantilla_WhatsApp',valor:'Olá {{cliente}} 👋, tudo bem?\n\nConfirmando seu agendamento na {{empresa}}:\n📅 {{fecha}} às {{hora}}\n🛎 Serviço: {{servicio}}\n📍 {{sucursal}}\n\nAté breve!'},
-      {clave:'Plantilla_Email',valor:'Olá {{cliente}},\n\nEste é um lembrete do seu agendamento na {{empresa}} no dia {{fecha}} às {{hora}}.\n\nAté breve!'},
-      {clave:'Plantilla_Pago',valor:'Olá {{cliente}} 👋\n\nEnviamos os detalhes para pagamento:\n\n🛎 *Serviços:* {{servicio}}\n💰 *Valor:* {{moneda}} {{monto}}\n\n{{metodos_pago}}\n\nObrigado!'},
-      {clave:'Pago_CBU',valor:''},
-      {clave:'Pago_Alias',valor:''},
-      {clave:'Pago_MP',valor:''},
-      {clave:'Pago_Otro_Nombre',valor:''},
-      {clave:'Pago_Otro_Link',valor:''},
-      {clave:'Setup_Completo',valor:'NO'}
-    ]
-  };
-}
-
-function locMigrateOld(){
-  // Aproveita dados antigos do backend em nuvem, se existirem neste navegador
-  try{
-    const raw=localStorage.getItem('GTURNOS_BOOTSTRAP');
-    if(!raw) return null;
-    const d=JSON.parse(raw);
-    if(!d||!Array.isArray(d.usuarios)||!d.usuarios.length) return null;
-    const u0=d.usuarios[0];
-    const pw=['senha','password','contrasena','senha_hash','clave'].find(k=>u0&&u0[k]!==undefined);
-    if(!pw) return null;
-    ['usuarios','sucursales','servicios','clientes','disponibilidad','ajustes','turnos','solicitudes']
-      .forEach(k=>{ if(!Array.isArray(d[k])) d[k]=[]; });
-    d._v=8; d._pwField=pw;
-    return d;
-  }catch(e){ return null; }
-}
-
-function localDb(){
-  try{
-    const raw=localStorage.getItem(LOCAL_DB_KEY);
-    if(raw){ const d=JSON.parse(raw); if(d&&d._v) return d; }
-    const mig=locMigrateOld();
-    if(mig){ localStorage.setItem(LOCAL_DB_KEY,JSON.stringify(mig)); return mig; }
-    const seed=locSeed();
-    localStorage.setItem(LOCAL_DB_KEY,JSON.stringify(seed));
-    return seed;
-  }catch(e){ return locSeed(); }
-}
-function localSaveDb(d){ try{localStorage.setItem(LOCAL_DB_KEY,JSON.stringify(d));}catch(e){} }
-
-/* — Ações locais (mesmo contrato do backend antigo) — */
-const LocalAPI={
-  apiLogin(email,senha){
-    const db=localDb();
-    const u=(db.usuarios||[]).find(x=>String(x.email||'').toLowerCase()===String(email||'').toLowerCase());
-    if(!u) return locErr('E-mail ou senha incorretos.');
-    if(String(u[db._pwField||'senha']||'')!==String(senha||'')) return locErr('E-mail ou senha incorretos.');
-    if(u.estado==='Inactivo') return locErr('Usuário inativo. Fale com o administrador.');
-    return locOk({id:u.id,nombre:u.nombre,email:u.email,rol:u.rol});
-  },
-  apiLogout(){ return locOk(true); },
-  apiGetBootstrap(session,etags){
-    const db=localDb();
-    const out={};
-    ['usuarios','sucursales','servicios','clientes','disponibilidad','ajustes','turnos','solicitudes'].forEach(k=>{
-      const rows=db[k]||[];
-      const etag=rows.length+':'+JSON.stringify(rows).length;
-      if(etags&&etags[k]!==undefined&&String(etags[k])===etag) out[k]=null;
-      else out[k]={data:rows,rowCount:etag};
-    });
-    return locOk(out);
-  },
-  apiSaveAjustes(obj,session){
-    if(!session) return locErr('Sessão inválida.');
-    const db=localDb();
-    Object.entries(obj||{}).forEach(([k,v])=>{
-      const row=db.ajustes.find(a=>a.clave===k);
-      if(row) row.valor=v; else db.ajustes.push({clave:k,valor:v});
-    });
-    localSaveDb(db); return locOk(true);
-  },
-  apiSaveTurno(obj,session){
-    const db=localDb();
-    const now=new Date().toISOString();
-    if(obj.id){
-      const t=(db.turnos||[]).find(x=>x.id===obj.id);
-      if(!t) return locErr('Agendamento não encontrado.');
-      if(session&&session.rol==='Staff'&&t.profesional_id!==session.id) return locErr('Sem permissão para editar este agendamento.');
-      Object.assign(t,obj,{id:t.id,updated_at:now});
-      localSaveDb(db); return locOk(t);
-    }
-    const confl=(db.turnos||[]).some(x=>String(x.profesional_id)===String(obj.profesional_id)&&x.fecha===obj.fecha&&x.estado!=='Cancelado'&&String(x.hora_inicio)<String(obj.hora_fin)&&String(obj.hora_inicio)<String(x.hora_fin));
-    if(confl) return locErr('Conflito de horário: este profissional já possui agendamento nesse intervalo.');
-    const t=Object.assign({},obj,{id:locUid('T'),pago_estado:obj.pago_estado||'Sin pago',criado_em:now,alerta_dia_enviada:'',alerta_d1_enviada:''});
-    db.turnos=db.turnos||[]; db.turnos.push(t);
-    localSaveDb(db); return locOk(t);
-  },
-  apiChangeTurnoEstado(id,estado,session){
-    const db=localDb();
-    const t=(db.turnos||[]).find(x=>x.id===id);
-    if(!t) return locErr('Agendamento não encontrado.');
-    if(session&&session.rol==='Staff'&&t.profesional_id!==session.id) return locErr('Sem permissão.');
-    t.estado=estado; t.updated_at=new Date().toISOString();
-    localSaveDb(db); return locOk(t);
-  },
-  apiDeleteTurno(id,session){
-    if(!session||session.rol!=='Admin') return locErr('Somente o administrador pode excluir.');
-    const db=localDb();
-    db.turnos=(db.turnos||[]).filter(x=>x.id!==id);
-    localSaveDb(db); return locOk(true);
-  },
-  apiBuildWhatsAppLink(id,session){
-    const db=localDb();
-    const t=(db.turnos||[]).find(x=>x.id===id); if(!t) return locErr('Agendamento não encontrado.');
-    const c=(db.clientes||[]).find(x=>x.id===t.cliente_id)||{};
-    const s=(db.servicios||[]).find(x=>x.id===t.servicio_id)||{};
-    const p=(db.usuarios||[]).find(x=>x.id===t.profesional_id)||{};
-    const su=(db.sucursales||[]).find(x=>x.id===t.sucursal_id)||{};
-    const phone=String(c.telefono||'').replace(/\D/g,'');
-    if(!phone) return locErr('Cliente sem telefone válido.');
-    const tpl=ajGet(db,'Plantilla_WhatsApp')||'Olá {{cliente}} 👋, tudo bem?\n\nConfirmando seu agendamento na {{empresa}}:\n📅 {{fecha}} às {{hora}}\n🛎 Serviço: {{servicio}}\n📍 {{sucursal}}\n\nAté breve!';
-    const msg=tpl.replace(/\{\{cliente\}\}/g,c.nombre||'').replace(/\{\{empresa\}\}/g,ajGet(db,'Nombre_Empresa')||'')
-      .replace(/\{\{fecha\}\}/g,t.fecha||'').replace(/\{\{hora\}\}/g,t.hora_inicio||'')
-      .replace(/\{\{servicio\}\}/g,s.nombre||'').replace(/\{\{sucursal\}\}/g,su.nombre||'')
-      .replace(/\{\{profissional\}\}/g,p.nombre||'');
-    return locOk('https://wa.me/'+phone+'?text='+encodeURIComponent(msg));
-  },
-  apiBuildPagoClienteLink(id,session){
-    const db=localDb();
-    const t=(db.turnos||[]).find(x=>x.id===id); if(!t) return locErr('Agendamento não encontrado.');
-    const c=(db.clientes||[]).find(x=>x.id===t.cliente_id)||{};
-    const s=(db.servicios||[]).find(x=>x.id===t.servicio_id)||{};
-    const phone=String(c.telefono||'').replace(/\D/g,'');
-    if(!phone) return locErr('Cliente sem telefone válido.');
-    const metodos=[];
-    if(ajGet(db,'Pago_CBU')) metodos.push('🏦 *Chave Pix:* '+ajGet(db,'Pago_CBU'));
-    if(ajGet(db,'Pago_Alias')) metodos.push('🏦 *Alias:* '+ajGet(db,'Pago_Alias'));
-    if(ajGet(db,'Pago_MP')) metodos.push('💙 *Mercado Pago:* '+ajGet(db,'Pago_MP'));
-    if(ajGet(db,'Pago_Otro_Nombre')&&ajGet(db,'Pago_Otro_Link')) metodos.push('💳 *'+ajGet(db,'Pago_Otro_Nombre')+':* '+ajGet(db,'Pago_Otro_Link'));
-    if(!metodos.length) return locErr('Configure um método de pagamento em Configurações.');
-    const tpl=ajGet(db,'Plantilla_Pago')||'Olá {{cliente}} 👋\n\nEnviamos os detalhes para pagamento:\n\n🛎 *Serviços:* {{servicio}}\n💰 *Valor:* {{moneda}} {{monto}}\n\n{{metodos_pago}}\n\nObrigado!';
-    const msg=tpl.replace(/\{\{cliente\}\}/g,c.nombre||'').replace(/\{\{servicio\}\}/g,s.nombre||'')
-      .replace(/\{\{monto\}\}/g,Number(s.precio||0).toLocaleString('pt-BR'))
-      .replace(/\{\{moneda\}\}/g,ajGet(db,'Moneda')||'R$')
-      .replace(/\{\{metodos_pago\}\}/g,metodos.join('\n'))
-      .replace(/\{\{cbu\}\}/g,ajGet(db,'Pago_CBU')||'').replace(/\{\{alias\}\}/g,ajGet(db,'Pago_Alias')||'')
-      .replace(/\{\{mp_link\}\}/g,ajGet(db,'Pago_MP')||'');
-    t.pago_estado='Link enviado'; t.updated_at=new Date().toISOString();
-    localSaveDb(db);
-    return locOk('https://wa.me/'+phone+'?text='+encodeURIComponent(msg));
-  },
-  apiMarcarPagado(id,session){
-    const db=localDb();
-    const t=(db.turnos||[]).find(x=>x.id===id); if(!t) return locErr('Agendamento não encontrado.');
-    t.pago_estado='Pagado'; t.updated_at=new Date().toISOString();
-    localSaveDb(db); return locOk(t);
-  },
-  apiEnviarRecordatorioWA(clienteId,session){
-    const db=localDb();
-    const c=(db.clientes||[]).find(x=>x.id===clienteId); if(!c) return locErr('Cliente não encontrado.');
-    const phone=String(c.telefono||'').replace(/\D/g,'');
-    if(!phone) return locErr('Cliente sem telefone válido.');
-    const hoy=locISO();
-    const prox=(db.turnos||[]).filter(t=>t.cliente_id===clienteId&&['Pendiente','Confirmado'].includes(t.estado)&&String(t.fecha)>=hoy)
-      .sort((a,b)=>String(a.fecha+a.hora_inicio).localeCompare(String(b.fecha+b.hora_inicio)))[0];
-    const empresa=ajGet(db,'Nombre_Empresa')||'EO Solução & Criação';
-    let msg;
-    if(prox){
-      const s=(db.servicios||[]).find(x=>x.id===prox.servicio_id)||{};
-      msg='Olá '+(c.nombre||'')+' 👋, tudo bem? Passando para lembrar do seu agendamento na *'+empresa+'*: 📅 '+prox.fecha+' às '+prox.hora_inicio+(s.nombre?' — '+s.nombre:'')+'. Até breve!';
-    } else {
-      msg='Olá '+(c.nombre||'')+' 👋, tudo bem? Aqui é da *'+empresa+'*. Quando podemos encaixar seu próximo atendimento?';
-    }
-    return locOk({waLink:'https://wa.me/'+phone+'?text='+encodeURIComponent(msg)});
-  },
-  apiSaveCliente(data,session){
-    const db=localDb();
-    if(data.id){
-      const c=(db.clientes||[]).find(x=>x.id===data.id);
-      if(!c) return locErr('Cliente não encontrado.');
-      Object.assign(c,data,{id:c.id,updated_at:new Date().toISOString()});
-      localSaveDb(db); return locOk(c);
-    }
-    const c=Object.assign({id:locUid('C'),notas_historial:''},data);
-    db.clientes=db.clientes||[]; db.clientes.push(c);
-    localSaveDb(db); return locOk(c);
-  },
-  apiSaveServicio(data,session){
-    const db=localDb();
-    data.duracion_min=Number(data.duracion_min||30);
-    data.precio=Number(data.precio||0);
-    if(data.id){
-      const s=(db.servicios||[]).find(x=>x.id===data.id);
-      if(!s) return locErr('Serviço não encontrado.');
-      Object.assign(s,data,{id:s.id});
-      localSaveDb(db); return locOk(s);
-    }
-    const s=Object.assign({estado:'Activo'},data,{id:locUid('SV')});
-    db.servicios=db.servicios||[]; db.servicios.push(s);
-    localSaveDb(db); return locOk(s);
-  },
-  apiDeleteServicio(id,session){
-    const db=localDb();
-    db.servicios=(db.servicios||[]).filter(x=>x.id!==id);
-    localSaveDb(db); return locOk(true);
-  },
-  apiSaveSucursal(data,session){
-    const db=localDb();
-    if(data.id){
-      const s=(db.sucursales||[]).find(x=>x.id===data.id);
-      if(!s) return locErr('Unidade não encontrada.');
-      Object.assign(s,data,{id:s.id});
-      localSaveDb(db); return locOk(s);
-    }
-    const s=Object.assign({},data,{id:locUid('SUC')});
-    db.sucursales=db.sucursales||[]; db.sucursales.push(s);
-    localSaveDb(db); return locOk(s);
-  },
-  apiSaveDisponibilidad(rows,session){
-    const db=localDb();
-    const novos=(rows||[]).filter(r=>r.usuario_id);
-    const users=new Set(novos.map(r=>r.usuario_id));
-    db.disponibilidad=(db.disponibilidad||[]).filter(d=>!users.has(d.usuario_id));
-    novos.forEach(r=>db.disponibilidad.push({
-      id:r.id||locUid('DP'),usuario_id:r.usuario_id,dia_semana:r.dia_semana,hora_desde:r.hora_desde,hora_hasta:r.hora_hasta
-    }));
-    localSaveDb(db); return locOk(true);
-  },
-  apiBuildAlertaWhatsAppLink(turnoId,tipo,session){
-    const db=localDb();
-    const t=(db.turnos||[]).find(x=>x.id===turnoId); if(!t) return locErr('Agendamento não encontrado.');
-    const c=(db.clientes||[]).find(x=>x.id===t.cliente_id)||{};
-    const s=(db.servicios||[]).find(x=>x.id===t.servicio_id)||{};
-    const su=(db.sucursales||[]).find(x=>x.id===t.sucursal_id)||{};
-    const phone=String(c.telefono||'').replace(/\D/g,'');
-    if(!phone) return locErr('Cliente sem telefone válido.');
-    const empresa=ajGet(db,'Nombre_Empresa')||'EO Solução & Criação';
-    const quando=tipo==='D1'?('amanhã ('+t.fecha+')'):'HOJE';
-    const msg='Olá '+(c.nombre||'')+' 👋! Passando para confirmar seu atendimento na *'+empresa+'*: 📅 '+quando+' às '+t.hora_inicio+(s.nombre?' — '+s.nombre:'')+(su.nombre?' na unidade '+su.nombre:'')+'. Até breve!';
-    return locOk('https://wa.me/'+phone+'?text='+encodeURIComponent(msg));
-  },
-  apiMarcarAlertaEnviada(turnoId,tipo,session){
-    const db=localDb();
-    const t=(db.turnos||[]).find(x=>x.id===turnoId); if(!t) return locErr('Agendamento não encontrado.');
-    if(tipo==='D1') t.alerta_d1_enviada='SI'; else t.alerta_dia_enviada='SI';
-    localSaveDb(db); return locOk(true);
-  },
-  apiSaveUsuario(data,session){
-    if(!session||session.rol!=='Admin') return locErr('Somente o administrador pode gerenciar usuários.');
-    const db=localDb();
-    if(data.id){
-      const u=(db.usuarios||[]).find(x=>x.id===data.id);
-      if(!u) return locErr('Usuário não encontrado.');
-      const senha=data.password?String(data.password):u[db._pwField||'senha'];
-      const patch=Object.assign({},data); delete patch.password;
-      Object.assign(u,patch,{id:u.id,rol:'Staff',senha});
-      localSaveDb(db);
-      const out=Object.assign({},u); delete out.senha;
-      return locOk(out);
-    }
-    if(!data.password) return locErr('Defina uma senha para o novo profissional.');
-    const email=String(data.email||'').toLowerCase();
-    if((db.usuarios||[]).some(x=>String(x.email||'').toLowerCase()===email)) return locErr('Já existe um usuário com este e-mail.');
-    const patch=Object.assign({},data); delete patch.password;
-    const u=Object.assign({estado:'Activo'},patch,{id:locUid('P'),rol:'Staff',senha:String(data.password)});
-    db.usuarios=db.usuarios||[]; db.usuarios.push(u);
-    localSaveDb(db);
-    const out=Object.assign({},u); delete out.senha;
-    return locOk(out);
-  },
-  apiDeleteUsuario(id,session){
-    if(!session||session.rol!=='Admin') return locErr('Somente o administrador pode gerenciar usuários.');
-    const db=localDb();
-    const u=(db.usuarios||[]).find(x=>x.id===id); if(!u) return locErr('Usuário não encontrado.');
-    u.estado='Inactivo'; u.updated_at=new Date().toISOString();
-    localSaveDb(db); return locOk(u);
-  },
-  apiUpdateSolicitudEstado(id,estado,nota,session){
-    const db=localDb();
-    const s=(db.solicitudes||[]).find(x=>x.id===id); if(!s) return locErr('Solicitação não encontrada.');
-    s.estado=estado; s.nota_interna=nota||''; s.updated_at=new Date().toISOString();
-    localSaveDb(db); return locOk(s);
-  }
-};
-
-// Garante que a base local exista (também alimenta o portal ?booking=1)
-try{ localDb(); }catch(e){}
 
 /* ════════════════════════════════════════════════════
    ESTADO GLOBAL
@@ -1818,22 +1393,9 @@ document.addEventListener('DOMContentLoaded', () => {
       applyAjustes(true); // só a tela de login
     } catch(e){}
   } else {
-    // Sem cache: usa a base local (mesmos dados do app) para personalizar o login
-    try {
-      const db0 = localDb();
-      ['usuarios','sucursales','servicios','clientes','disponibilidad','ajustes','turnos','solicitudes']
-        .forEach(k=>App.data[k]=db0[k]||[]);
-      applyAjustes(true);
-    } catch(e){}
+    // Sem cache: aplica os valores padrão da marca na tela de login
+    applyAjustes(true);
   }
-
-  // Dica de primeiro acesso: aparece somente enquanto o admin usa a senha padrão
-  try{
-    const db0 = localDb();
-    const adm = (db0.usuarios||[]).find(u=>u.rol==='Admin');
-    const hint = el('loginHint');
-    if (hint) hint.classList.toggle('hidden', !(adm && String(adm[db0._pwField||'senha']||'')==='eo123456'));
-  }catch(e){}
 
   bindLogin();
   bindNav();
@@ -1856,7 +1418,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ════════════════════════════════════════════════════
    LOGIN
 ════════════════════════════════════════════════════ */
-function loginBtnLabel(){ return normPt(getSetting('Texto_Login_Boton'))||'Entrar no CRM'; }
+function loginBtnLabel(){ return normPt(getSetting('Texto_Login_Boton'))||'Entrar no Sistema'; }
 function setLoginBtnHtml(html){ const b=el('loginBtn'); if(b) b.innerHTML=html; }
 
 function bindLogin() {
@@ -1874,7 +1436,7 @@ function bindLogin() {
       res => {
         btn.disabled = false; setLoginBtnHtml(loginBtnLabel()+' <span class="arr">→</span>');
         if (!res.ok) {
-          if (errTxt) errTxt.textContent = res.message||'Não foi possível entrar.';
+          if (errTxt) errTxt.textContent = normPt(res.message)||'Não foi possível entrar.';
           if (errBox) errBox.classList.add('show');
           return;
         }
@@ -1884,7 +1446,7 @@ function bindLogin() {
       },
       err => {
         btn.disabled = false; setLoginBtnHtml(loginBtnLabel()+' <span class="arr">→</span>');
-        if (errTxt) errTxt.textContent = err.message||'Não foi possível entrar.';
+        if (errTxt) errTxt.textContent = (err.name==='AbortError'?'A conexão demorou demais. Tente novamente.':normPt(err.message))||'Não foi possível entrar.';
         if (errBox) errBox.classList.add('show');
       }
     );
@@ -2023,18 +1585,12 @@ const PT_STATUS={'Pendiente':'Pendente','Confirmado':'Confirmado','Realizado':'R
 function tpal(v){ return PT_STATUS[v]||v; }
 
 /* ── Normaliza textos padrão antigos salvos em espanhol para exibir em pt-BR ── */
-const PT_TEXTOS={'Gestión de Turnos PRO':'Gestão de Agendamentos PRO','Gestion de Turnos PRO':'Gestão de Agendamentos PRO','Bienvenido':'Bem-vindo','Ingresá para gestionar tus turnos.':'Entre para gerenciar seus agendamentos.','Ingresá para gestionar tu agenda.':'Entre para gerenciar sua agenda.','Ingresar':'Entrar'};
+const PT_TEXTOS={'Sistema de Gestión de Turnos':'Sistema de Gestão de Agendamentos','Gestión de Turnos PRO':'Gestão de Agendamentos PRO','Gestion de Turnos PRO':'Gestão de Agendamentos PRO','Bienvenido':'Bem-vindo','Ingresá para gestionar tus turnos.':'Entre para gerenciar seus agendamentos.','Ingresá para gestionar tu agenda.':'Entre para gerenciar sua agenda.','Ingresar':'Entrar','Credenciales inválidas o usuario inactivo.':'E-mail ou senha incorretos, ou usuário inativo.','Credenciales invalidas o usuario inactivo.':'E-mail ou senha incorretos, ou usuário inativo.','Usuario o contraseña incorrectos.':'E-mail ou senha incorretos.',"Usuario o contrasena incorrectos.":'E-mail ou senha incorretos.'};
 function normPt(v){ return PT_TEXTOS[String(v||'').trim()]||v; }
 
 function gsRun(fn, args, onSuccess, onError) {
-  /* Backend local: executa a ação no próprio navegador (localStorage) e mantém
-     o mesmo contrato assíncrono do antigo backend /api/gas. */
-  Promise.resolve()
-    .then(()=>{
-      const f=LocalAPI[fn];
-      if(!f) return {ok:false,message:'Ação indisponível: '+fn};
-      return f(...(args||[]));
-    })
+  /* Backend remoto: envia {action, args} ao Google Apps Script do cliente. */
+  gasCall(fn, args)
     .then(res=>onSuccess(res))
     .catch(err=>{ (onError||(e=>toast(e.message||String(e),'error')))(err); });
 }
@@ -2115,7 +1671,7 @@ function applyAjustes(loginOnly) {
   setIfExists('loginBrandSubM', el => el.textContent = sistema);
   setIfExists('loginTitle',     el => el.textContent = normPt(g('Texto_Login_Titulo'))||'Bem-vindo de volta');
   setIfExists('loginSubtitle',  el => el.textContent = normPt(g('Texto_Login_Subtitulo'))||'Entre com o usuário configurado no sistema.');
-  setLoginBtnHtml((normPt(g('Texto_Login_Boton'))||'Entrar no CRM')+' <span class="arr">→</span>');
+  setLoginBtnHtml((normPt(g('Texto_Login_Boton'))||'Entrar no Sistema')+' <span class="arr">→</span>');
 
   if (fondo) {
     el('loginScreen').style.background = `linear-gradient(rgba(6,13,9,.78),rgba(6,13,9,.82)),url('${fondo}') center/cover`;
